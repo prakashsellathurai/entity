@@ -55,7 +55,7 @@ class OllamaCLI:
     """
 
     model: str = "llama3"
-    linux_url: str = "https://ollama.com/download/ollama-linux-amd64.tar.gz"
+    linux_url: str = os.environ.get("OLLAMA_LINUX_URL", "https://ollama.com/download/ollama-linux-amd64.tar.gz")
 
     # Computed attributes (populated at runtime)
     executable: str | None = None
@@ -99,7 +99,7 @@ class OllamaCLI:
 
     def _try_auto_install(self) -> str | None:
         """
-        Attempt silent install on Linux (tarball) or macOS (Homebrew).
+        Attempt silent install on Linux (tarball), macOS (Homebrew), or Windows (installer).
         Returns path to executable if successful, else None.
         """
         try:
@@ -107,9 +107,61 @@ class OllamaCLI:
                 return self._install_linux_tar()
             if self._system == "darwin":
                 return self._install_via_brew()
+            if self._system == "windows":
+                return self._install_windows_exe()
         except Exception as exc:
             print(f"[WARN] Automatic CLI installation failed: {exc}")
         return None
+
+    def _install_windows_exe(self) -> str:
+        import urllib.error
+        import ctypes
+        win_url = os.environ.get(
+            "OLLAMA_WINDOWS_URL",
+            "https://ollama.com/download/OllamaSetup.exe"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            exe_path = pathlib.Path(tmp) / "OllamaSetup.exe"
+            try:
+                print(f"[INFO] Downloading Ollama CLI installer from {win_url}")
+                urllib.request.urlretrieve(win_url, exe_path)
+            except urllib.error.HTTPError as e:
+                print(f"[ERROR] Failed to download Ollama CLI installer: HTTP {e.code} {e.reason}\nURL: {win_url}")
+                raise OllamaSetupError(f"Failed to download Ollama CLI installer: {e}")
+            except Exception as e:
+                print(f"[ERROR] Unexpected error downloading Ollama CLI installer: {e}\nURL: {win_url}")
+                raise OllamaSetupError(f"Failed to download Ollama CLI installer: {e}")
+            print(f"[INFO] Running Ollama CLI installer...")
+            # Try to run the installer silently, fallback to normal if not supported
+            try:
+                # Try silent install (if supported by installer)
+                result = subprocess.run([str(exe_path), "/S"], capture_output=True)
+                if result.returncode != 0:
+                    print("[WARN] Silent install failed, running installer interactively...")
+                    # Run interactively
+                    if sys.platform == "win32":
+                        # Use ShellExecute to show UAC prompt if needed
+                        ctypes.windll.shell32.ShellExecuteW(None, "open", str(exe_path), None, None, 1)
+                    else:
+                        subprocess.Popen([str(exe_path)])
+                    print("[INFO] Please complete the Ollama installation in the window that appears.")
+                    input("Press Enter after installation is complete...")
+                else:
+                    print("[INFO] Ollama CLI installed successfully.")
+            except Exception as e:
+                print(f"[ERROR] Could not run Ollama installer: {e}")
+                raise OllamaSetupError(f"Failed to run Ollama CLI installer: {e}")
+            # After install, check for executable
+            user_profile = os.environ.get("USERPROFILE")
+            if user_profile:
+                default = pathlib.Path(user_profile) / r"AppData\Local\Programs\Ollama\ollama.exe"
+                if default.exists():
+                    return str(default)
+            # Try PATH
+            path_lookup = shutil.which("ollama.exe")
+            if path_lookup:
+                return path_lookup
+            raise OllamaSetupError("Ollama CLI installer completed, but ollama.exe not found. Please ensure it is installed and in your PATH.")
 
     # 2.2 Verify function
     def _verify_cli(self) -> None:
@@ -139,17 +191,26 @@ class OllamaCLI:
 
     # ── Platform-specific helpers ────────────────────────────────────────────
     def _install_linux_tar(self) -> str:
-        with tempfile.TemporaryDirectory() as tmp:
-            tar_path = pathlib.Path(tmp) / "ollama.tgz"
-            urllib.request.urlretrieve(self.linux_url, tar_path)
-            with tarfile.open(tar_path) as tar:
-                tar.extractall(tmp)
-            bin_path = pathlib.Path(tmp) / "ollama"
-            dest = pathlib.Path("/usr/local/bin/ollama")
-            shutil.move(bin_path, dest)
-            dest.chmod(dest.stat().st_mode | 0o111)  # ensure executable
-            print(f"[INFO] Installed Ollama CLI to {dest}")
-            return str(dest)
+        # Use the official install script
+        install_script_url = "https://ollama.com/install.sh"
+        try:
+            print(f"[INFO] Installing Ollama CLI using the official script: {install_script_url}")
+            result = subprocess.run(
+                ["sh", "-c", f"curl -fsSL {install_script_url} | sh"],
+                capture_output=True, text=True
+            )
+            if result.returncode != 0:
+                print(f"[ERROR] Ollama install script failed:\n{result.stderr or result.stdout}")
+                raise OllamaSetupError("Ollama install script failed.")
+            # After install, check for executable
+            path_lookup = shutil.which("ollama")
+            if path_lookup:
+                print(f"[INFO] Installed Ollama CLI to {path_lookup}")
+                return path_lookup
+            raise OllamaSetupError("Ollama CLI installed, but not found in PATH.")
+        except Exception as e:
+            print(f"[ERROR] Failed to install Ollama CLI: {e}")
+            raise OllamaSetupError(f"Failed to install Ollama CLI: {e}")
 
     def _install_via_brew(self) -> str:
         if not shutil.which("brew"):
@@ -157,9 +218,31 @@ class OllamaCLI:
         _run(["brew", "install", "ollama"])
         return shutil.which("ollama")  # type: ignore[return-value]
 
+# ──────────────────────────────────────────────────────────────────────────────
+# 3. Standalone setup function for CLI installation
+# ──────────────────────────────────────────────────────────────────────────────
+def setup_ollama_cli(model: str = "llama3") -> None:
+    """
+    Standalone helper to set up the Ollama CLI for the current platform.
+    Prints clear instructions if setup fails.
+    """
+    try:
+        cli = OllamaCLI(model)
+        cli._locate_or_install_cli()
+        print(f"[SUCCESS] Ollama CLI is installed and ready at: {cli.executable}")
+    except OllamaSetupError as e:
+        print(f"[ERROR] Ollama CLI setup failed: {e}")
+        if cli._system == "linux":
+            print("[HINT] The default download URL may be broken. Set the environment variable OLLAMA_LINUX_URL to the correct tarball URL from https://ollama.com/download and re-run this script.")
+        elif cli._system == "windows":
+            print("[HINT] Download the Windows installer from https://ollama.com/download and run it manually if automatic setup fails.")
+        elif cli._system == "darwin":
+            print("[HINT] Try installing via Homebrew: brew install ollama")
+        else:
+            print("[HINT] Please install Ollama CLI manually for your platform.")
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 3. High-level helper exposed to callers
+# 4. High-level helper exposed to callers
 # ──────────────────────────────────────────────────────────────────────────────
 def ensure_ollama_ready(model: str = "llama3") -> None:
     """
