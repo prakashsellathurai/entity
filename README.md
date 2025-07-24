@@ -4,7 +4,8 @@ Entity is a Python-based AI agent designed to interact with your operating syste
 
 ## Architecture
 
-This agent uses a local Large Language Model (LLM) powered by Ollama. This ensures that all data and interactions remain private and on your local machine.
+
+This agent uses a local Large Language Model (LLM) powered by Ollama. By default, it connects to a locally running Ollama server and uses the default model (e.g., `llama3`). All data and interactions remain private and on your local machine.
 
 The core components are:
 - **Agent Logic:** The main Python application that orchestrates tasks.
@@ -13,11 +14,12 @@ The core components are:
 
 ## Getting Started
 
+
 ### Prerequisites
 
 - Python 3.8+
-- [Ollama](https://ollama.ai/) installed and running.
-- A downloaded Ollama model (e.g., `ollama run llama3`)
+- [Ollama](https://ollama.ai/) installed and running (default: `ollama serve`)
+- A downloaded Ollama model (default: `llama3`, run `ollama run llama3` to download)
 
 
 ### Installation
@@ -36,9 +38,12 @@ cd entity
 pip install .
 ```
 
-### Running the Agent
 
-You can run the agent from the command line:
+### Running the Agent (Default Ollama)
+
+
+You can run the agent from the command line (it will use the default Ollama model):
+
 
 ```bash
 entity-agent
@@ -47,6 +52,14 @@ or
 ```bash
 python -m entityAgent.agent
 ```
+## TODO / Roadmap
+
+- [ ] Allow configuration of LLM model (e.g., choose `llama3`, `mistral`, etc.)
+- [ ] Add support for configuring LLM server URL/port
+- [ ] Add UI options (CLI, Web, GUI)
+- [ ] Add configuration file for user preferences
+- [ ] Extend platform interaction capabilities
+
 
 
 ## Usage
