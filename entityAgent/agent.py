@@ -1,7 +1,7 @@
 import sys
 import time
 from entityAgent.platform_interaction import execute_command, get_operating_system, list_processes
-from entityAgent.ollama_utils import ensure_ollama_installed, ensure_ollama_cli_and_model
+from entityAgent.ollama_utils import ensure_ollama_ready
 
 def runtime():
     """
@@ -10,27 +10,9 @@ def runtime():
     print("Entity Agent: Initializing...")
 
 
-    # Ensure ollama Python package is installed
-    if not ensure_ollama_installed():
-        sys.exit(1)
+    # Ensure ollama Python package, CLI, and model are installed and ready
+    ensure_ollama_ready()
     import ollama
-    # Ensure ollama CLI and model are available
-    ensure_ollama_cli_and_model("llama3")
-    # Try to connect to ollama, start if not running
-    try:
-        ollama.list()
-    except Exception:
-        print("Ollama is not running. Attempting to start Ollama with default model 'llama3'...")
-        import subprocess
-        try:
-            subprocess.Popen(["ollama", "run", "llama3"])
-            time.sleep(5)  # Give Ollama some time to start
-            ollama.list()
-            print("Ollama started successfully with model 'llama3'.")
-        except Exception as e:
-            print(f"Error: Could not start Ollama automatically. Please start the Ollama service and try again.\nDetails: {e}")
-            sys.exit(1)
-
     print("Ollama connection successful.")
     
     os_name = get_operating_system()
