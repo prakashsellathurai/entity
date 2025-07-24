@@ -1,7 +1,21 @@
+
 import subprocess
 import sys
 import os
 import pytest
+import socket
+
+def is_ollama_running(host='localhost', port=11434):
+    try:
+        with socket.create_connection((host, port), timeout=2):
+            return True
+    except Exception:
+        return False
+
+skip_e2e = pytest.mark.skipif(
+    os.environ.get('GITHUB_ACTIONS') == 'true' or not is_ollama_running(),
+    reason="Ollama server not running or running in CI"
+)
 
 
 # Use the correct module for CLI entry point
@@ -10,6 +24,7 @@ AGENT_MODULE = "entityAgent.runtime"
 
 import re
 
+@skip_e2e
 @pytest.mark.parametrize("inputs,expected_patterns,flaky", [
     # Shell command
     (["run: echo hello"], [r"hello"], False),
