@@ -19,36 +19,47 @@ The core components are:
 - [Ollama](https://ollama.ai/) installed and running.
 - A downloaded Ollama model (e.g., `ollama run llama3`)
 
+
 ### Installation
 
-1.  Clone the repository:
-    ```bash
-    git clone <repository-url>
-    cd entity
-    ```
+#### From PyPI (recommended)
 
-2.  Install the required Python packages:
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+pip install entityagent
+```
+
+#### From source
+
+```bash
+git clone https://github.com/prakashsellathurai/entity
+cd entity
+pip install .
+```
 
 ### Running the Agent
 
+You can run the agent from the command line:
+
 ```bash
-python main.py
+entity-agent
 ```
+or
+```bash
+python -m entityAgent.agent
+```
+
 
 ## Usage
 
 You can interact with the agent in two ways:
 
-1.  **Natural Language:** Ask questions or give commands in plain English.
+1.  **Natural Language:**
     ```
     > Tell me a joke.
     > What is the capital of France?
     ```
 
-2.  **Commands:** Use the `run:` prefix to execute shell commands or use built-in functions.
+2.  **Commands:**
     -   **Execute a shell command:**
         ```
         > run: ls -l
@@ -56,6 +67,8 @@ You can interact with the agent in two ways:
     -   **List running processes:**
         ```
         > run: list_processes
+        ```
+
 ## Testing
 
 To run the test suite, execute the following command:

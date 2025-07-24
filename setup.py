@@ -4,11 +4,14 @@ setup(
     name='entityagent',
     version='0.1.0',
     description='Entity Agent: An AI assistant with platform interaction capabilities',
-    author='Your Name',
+    long_description=open('README.md', encoding='utf-8').read(),
+    long_description_content_type='text/markdown',
+    author='Prakash Sellathurai',
+    author_email='prakashsellathurai@gmail.com',
+    url='https://github.com/prakashsellathurai/entity',
     packages=find_packages(),
     install_requires=[
         'psutil',
-        # Add other dependencies here, e.g. 'ollama' if available on PyPI
     ],
     python_requires='>=3.8',
     include_package_data=True,
@@ -20,5 +23,12 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Software Development :: Libraries :: Application Frameworks',
     ],
+    project_urls={
+        'Source': 'https://github.com/prakashsellathurai/entity',
+        'Tracker': 'https://github.com/prakashsellathurai/entity/issues',
+    },
 )
