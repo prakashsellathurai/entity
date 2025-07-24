@@ -48,7 +48,7 @@ entity-agent
 ```
 or
 ```bash
-python -m entityAgent.agent
+python -m entityAgent.runtime
 ```
 ## TODO / Roadmap
 
