@@ -32,6 +32,7 @@ When the user asks you to perform a task, respond with the appropriate command."
         try:
             user_input = input("> ")
             if user_input.lower() in ["exit", "quit"]:
+                print("Exiting Entity Agent.")
                 break
 
             if user_input.lower().startswith("run:"):
