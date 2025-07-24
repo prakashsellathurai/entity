@@ -2,9 +2,8 @@
 
 Entity is a Python-based AI agent designed to interact with your operating system, execute commands, and control programs across Windows, macOS, and Linux.
 
+
 ## Architecture
-
-
 This agent uses a local Large Language Model (LLM) powered by Ollama. By default, it connects to a locally running Ollama server and uses the default model (e.g., `llama3`). All data and interactions remain private and on your local machine.
 
 The core components are:
@@ -12,9 +11,8 @@ The core components are:
 - **LLM Service:** An Ollama server running a local model (e.g., Llama 3).
 - **Platform Interaction:** Modules for interacting with the specific operating system's terminal and applications.
 
+
 ## Getting Started
-
-
 ### Prerequisites
 
 - Python 3.8+
@@ -22,8 +20,8 @@ The core components are:
 - A downloaded Ollama model (default: `llama3`, run `ollama run llama3` to download)
 
 
-### Installation
 
+### Installation
 #### From PyPI (recommended)
 
 ```bash
