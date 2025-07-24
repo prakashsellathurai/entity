@@ -1,6 +1,13 @@
-import ollama
 import sys
-from .platform_interaction import execute_command, get_operating_system, list_processes
+import subprocess
+import time
+try:
+    import ollama
+except ImportError:
+    print("Ollama Python package not found. Attempting to install ollama...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "ollama"])
+    import ollama
+from entityAgent.platform_interaction import execute_command, get_operating_system, list_processes
 
 def runtime():
     """
@@ -8,12 +15,33 @@ def runtime():
     """
     print("Entity Agent: Initializing...")
 
-    # Check if Ollama is running
+
+    # Check if Ollama is running, try to start with default model if not found
     try:
         ollama.list()
     except Exception:
-        print("Error: Ollama is not running. Please start the Ollama service and try again.")
-        sys.exit(1)
+        print("Ollama is not running. Attempting to start Ollama with default model 'llama3'...")
+        try:
+            # Check if ollama CLI is installed
+            result = subprocess.run(["ollama", "--version"], capture_output=True, text=True)
+            if result.returncode != 0:
+                print("Ollama CLI not found. Please install Ollama from https://ollama.com/download and ensure it is in your PATH.")
+                sys.exit(1)
+            # Check if model is present
+            model_list = subprocess.run(["ollama", "list"], capture_output=True, text=True)
+            if "llama3" not in model_list.stdout:
+                print("Downloading model 'llama3'...")
+                pull_result = subprocess.run(["ollama", "pull", "llama3"], capture_output=True, text=True)
+                if pull_result.returncode != 0:
+                    print(f"Failed to download model 'llama3': {pull_result.stderr}")
+                    sys.exit(1)
+            subprocess.Popen(["ollama", "run", "llama3"])
+            time.sleep(5)  # Give Ollama some time to start
+            ollama.list()
+            print("Ollama started successfully with model 'llama3'.")
+        except Exception as e:
+            print(f"Error: Could not start Ollama automatically. Please start the Ollama service and try again.\nDetails: {e}")
+            sys.exit(1)
 
     print("Ollama connection successful.")
     
