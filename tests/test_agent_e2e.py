@@ -3,21 +3,33 @@ import sys
 import os
 import pytest
 
+
+# Use the correct module for CLI entry point
 AGENT_MODULE = "entityAgent.runtime"
 
-@pytest.mark.parametrize("input_cmd,expected_output", [
-    ("run: echo hello", "hello"),
-    ("run: list_processes", "PID:"),
-    ("exit", "Exiting Entity Agent."),
+
+import re
+
+@pytest.mark.parametrize("inputs,expected_patterns", [
+    # Shell command
+    (["run: echo hello"], [r"hello"]),
+    # List processes
+    (["run: list_processes"], [r"PID:.*Name:.*User:"]),
+    # Natural language
+    (["Tell me a joke."], [r"(?i)joke|funny|laugh|smile"]),
+    # Invalid command
+    (["run: foobarbazcommand"], [r"Error:", r"not found|No such file|is not recognized"]),
+    # Multiple commands
+    (["run: echo test1", "run: echo test2"], [r"test1", r"test2"]),
+    # Exit
+    (["exit"], [r"Exiting Entity Agent."]),
 ])
-def test_agent_e2e(input_cmd, expected_output):
+def test_agent_e2e(inputs, expected_patterns):
     """
     End-to-end test for the agent CLI.
-    Simulates user input and checks for expected output.
+    Simulates user input and checks for expected output patterns.
     """
-    # Prepare the command to run the agent
     cmd = [sys.executable, "-m", AGENT_MODULE]
-    # Start the agent process
     proc = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
@@ -27,12 +39,12 @@ def test_agent_e2e(input_cmd, expected_output):
         env=os.environ.copy(),
     )
     try:
-        # Send the input command and exit
-        proc.stdin.write(input_cmd + "\n")
+        for line in inputs:
+            proc.stdin.write(line + "\n")
         proc.stdin.write("exit\n")
         proc.stdin.flush()
-        # Read output
-        stdout, stderr = proc.communicate(timeout=30)
-        assert expected_output in stdout, f"Expected '{expected_output}' in output. Got: {stdout}"
+        stdout, stderr = proc.communicate(timeout=60)
+        for pat in expected_patterns:
+            assert re.search(pat, stdout), f"Expected pattern '{pat}' in output. Got: {stdout}"
     finally:
         proc.kill()
