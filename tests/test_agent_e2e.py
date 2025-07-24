@@ -3,7 +3,7 @@ import sys
 import os
 import pytest
 
-AGENT_MODULE = "entityAgent.agent"
+AGENT_MODULE = "entityAgent.runtime"
 
 @pytest.mark.parametrize("input_cmd,expected_output", [
     ("run: echo hello", "hello"),
