@@ -1,13 +1,7 @@
 import sys
-import subprocess
 import time
-try:
-    import ollama
-except ImportError:
-    print("Ollama Python package not found. Attempting to install ollama...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "ollama"])
-    import ollama
 from entityAgent.platform_interaction import execute_command, get_operating_system, list_processes
+from entityAgent.ollama_utils import ensure_ollama_installed, ensure_ollama_cli_and_model
 
 def runtime():
     """
@@ -16,25 +10,19 @@ def runtime():
     print("Entity Agent: Initializing...")
 
 
-    # Check if Ollama is running, try to start with default model if not found
+    # Ensure ollama Python package is installed
+    if not ensure_ollama_installed():
+        sys.exit(1)
+    import ollama
+    # Ensure ollama CLI and model are available
+    ensure_ollama_cli_and_model("llama3")
+    # Try to connect to ollama, start if not running
     try:
         ollama.list()
     except Exception:
         print("Ollama is not running. Attempting to start Ollama with default model 'llama3'...")
+        import subprocess
         try:
-            # Check if ollama CLI is installed
-            result = subprocess.run(["ollama", "--version"], capture_output=True, text=True)
-            if result.returncode != 0:
-                print("Ollama CLI not found. Please install Ollama from https://ollama.com/download and ensure it is in your PATH.")
-                sys.exit(1)
-            # Check if model is present
-            model_list = subprocess.run(["ollama", "list"], capture_output=True, text=True)
-            if "llama3" not in model_list.stdout:
-                print("Downloading model 'llama3'...")
-                pull_result = subprocess.run(["ollama", "pull", "llama3"], capture_output=True, text=True)
-                if pull_result.returncode != 0:
-                    print(f"Failed to download model 'llama3': {pull_result.stderr}")
-                    sys.exit(1)
             subprocess.Popen(["ollama", "run", "llama3"])
             time.sleep(5)  # Give Ollama some time to start
             ollama.list()
