@@ -1,19 +1,42 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.env
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
 
-# IDEs and editors
+# VSCode
 .vscode/
-.idea/
-*.swp
-*.swo
 
-# OS-specific
+# Pytest
+.cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
 .DS_Store
 Thumbs.db
+
+# PyPI/Packaging
+*.tar.gz
+*.whl
+
+# Logs
+*.log
+
+# Test output
+htmlcov/
+.coverage
+
+# Env
+.env
+.venv/
+venv/
+ENV/
+
+# Ollama models (if any local cache)
+ollama_models/
