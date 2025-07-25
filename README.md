@@ -1,4 +1,8 @@
-# Entity - A Cross-Platform LLM Agent
+[![Run Pytest](https://github.com/prakashsellathurai/entity/actions/workflows/pytest.yml/badge.svg)](https://github.com/prakashsellathurai/entity/actions/workflows/pytest.yml)
+[![cross platform-ci](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml/badge.svg)](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/entityagent)](https://pypi.org/project/entityagent/)
+[![Python version](https://img.shields.io/pypi/pyversions/entityagent)](https://pypi.org/project/entityagent/)
+
 
 Entity is a Python-based AI agent designed to interact with your operating system, execute commands, and control programs across Windows, macOS, and Linux.
 
