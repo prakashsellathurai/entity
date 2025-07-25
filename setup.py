@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='entityagent',
-    version='0.1.2',
+    version='0.1.3',
     description='Entity Agent: An AI assistant with platform interaction capabilities',
     long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
@@ -18,6 +18,7 @@ setup(
     entry_points={
         'console_scripts': [
             'entity-agent=entityAgent.agent:runtime',
+            'uninstall_entityagent = entityAgent.ollama_utils:uninstall_ollama_cli',
         ],
     },
     classifiers=[

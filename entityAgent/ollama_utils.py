@@ -250,3 +250,61 @@ def ensure_ollama_ready(model: str = "llama3") -> None:
     """
     ensure_python_package("ollama")
     OllamaCLI(model).ensure_ready()
+
+
+def uninstall_ollama_cli():
+    """
+    Uninstalls the Ollama CLI and related data.
+    """
+    system = platform.system().lower()
+    try:
+        if system == "windows":
+            # Implement Windows uninstallation
+            print("[INFO] Uninstalling Ollama CLI on Windows...")
+            # 1. Locate installation directory
+            user_profile = os.environ.get("USERPROFILE")
+            if user_profile:
+                ollama_dir = os.path.join(user_profile, "AppData", "Local", "Programs", "Ollama")
+                # 2. Attempt to run uninstaller or delete directory
+                uninstaller_path = os.path.join(ollama_dir, "Uninstall.exe") # Example name
+                if os.path.exists(uninstaller_path):
+                    print("[INFO] Running uninstaller...")
+                    subprocess.run([uninstaller_path], check=True)
+                elif os.path.exists(ollama_dir):
+                    print(f"[INFO] Removing directory: {ollama_dir}")
+                    shutil.rmtree(ollama_dir)
+            # 3. Remove from PATH (requires modifying environment variables - not directly possible in script)
+            print("[INFO] Please manually remove Ollama from your PATH environment variable.")
+
+        elif system == "linux":
+            # Implement Linux uninstallation
+            print("[INFO] Uninstalling Ollama CLI on Linux...")
+            # 1. Remove executable
+            executable_path = "/usr/local/bin/ollama"  # Example path
+            if os.path.exists(executable_path):
+                print(f"[INFO] Removing executable: {executable_path}")
+                os.remove(executable_path)
+            # 2. Remove data directory
+            data_dir = "/usr/share/ollama" # Example path
+            if os.path.exists(data_dir):
+                print(f"[INFO] Removing data directory: {data_dir}")
+                shutil.rmtree(data_dir)
+
+        elif system == "darwin":
+            # Implement macOS uninstallation
+            print("[INFO] Uninstalling Ollama CLI on macOS...")
+            try:
+                subprocess.run(["brew", "uninstall", "ollama"], check=True)
+            except FileNotFoundError:
+                print("[WARN] Homebrew not found. Please uninstall Ollama manually.")
+
+        # Remove model data (all platforms)
+        model_data_dir = os.path.expanduser("~/.ollama")
+        if os.path.exists(model_data_dir):
+            print(f"[INFO] Removing model data directory: {model_data_dir}")
+            shutil.rmtree(model_data_dir)
+
+        print("[SUCCESS] Ollama CLI uninstallation complete.")
+
+    except Exception as e:
+        print(f"[ERROR] Ollama CLI uninstallation failed: {e}")
