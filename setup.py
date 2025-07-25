@@ -18,6 +18,7 @@ setup(
     entry_points={
         'console_scripts': [
             'entity-agent=entityAgent.agent:runtime',
+            'uninstall_entityagent = entityAgent.ollama_utils:uninstall_ollama_cli',
         ],
     },
     classifiers=[
