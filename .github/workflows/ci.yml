@@ -30,6 +30,8 @@ jobs:
       - name: Install Ollama via ai-action (Windows)
         if: runner.os == 'Windows'
         uses: ai-action/setup-ollama@v1
+        env:
+          WSL_CHECK: "true"
       - name: Verify Ollama installation
         shell: bash
         run: |

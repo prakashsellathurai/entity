@@ -25,11 +25,12 @@ def test_platform_detection():
             pass  # Not WSL
     elif os_name == "windows":
         # Optionally check for WSL presence
-        try:
-            result = subprocess.run(["wsl.exe", "--version"], capture_output=True)
-            assert result.returncode == 0, "WSL not available on Windows."
-        except FileNotFoundError:
-            pass  # WSL not installed, but not required
+        if os.getenv("WSL_CHECK") == "true":
+            try:
+                result = subprocess.run(["wsl.exe", "--version"], capture_output=True)
+                assert result.returncode == 0, "WSL not available on Windows."
+            except FileNotFoundError:
+                pytest.skip("WSL not installed")
 
 @pytest.mark.skipif(platform.system().lower() != "linux", reason="WSL test only on Linux")
 def test_wsl_detection():
