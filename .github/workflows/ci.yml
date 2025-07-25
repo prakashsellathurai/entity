@@ -23,9 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
-      - name: Install Ollama via Entity Agent
+      - name: Install Ollama via Entity Agent (Non-Windows)
+        if: runner.os != 'Windows'
         run: |
           python -m entityAgent.runtime --install-ollama
+      - name: Install Ollama via ai-action (Windows)
+        if: runner.os == 'Windows'
+        uses: ai-action/setup-ollama@v1
       - name: Verify Ollama installation
         shell: bash
         run: |
