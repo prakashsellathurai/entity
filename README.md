@@ -1,5 +1,5 @@
 [![Run Pytest](https://github.com/prakashsellathurai/entity/actions/workflows/pytest.yml/badge.svg)](https://github.com/prakashsellathurai/entity/actions/workflows/pytest.yml)
-[![cross platform-ci](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml/badge.svg)](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml)
+[![cross platform-ci](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/entityagent)](https://pypi.org/project/entityagent/)
 [![Python version](https://img.shields.io/pypi/pyversions/entityagent)](https://pypi.org/project/entityagent/)
 
