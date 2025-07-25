@@ -3,8 +3,14 @@ name: cross platform-ci
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'setup.py'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'setup.py'
 
 jobs:
   test:
