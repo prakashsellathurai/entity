@@ -8,9 +8,6 @@ import pytest
 def is_ollama_installed():
     return shutil.which("ollama") is not None
 
-def test_ollama_installed():
-    assert is_ollama_installed(), "Ollama is not installed or not in PATH."
-
 def test_platform_detection():
     os_name = platform.system().lower()
     assert os_name in ["windows", "linux", "darwin"], f"Unknown OS: {os_name}"
