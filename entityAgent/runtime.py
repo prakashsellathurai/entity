@@ -1,20 +1,21 @@
+
+
 import sys
 import time
+import argparse
+from entityAgent.ollama_utils import setup_ollama_cli, ensure_ollama_ready
 from entityAgent.platform_interaction import execute_command, get_operating_system, list_processes
-from entityAgent.ollama_utils import ensure_ollama_ready
-
 def runtime():
     """
     Main function to run the Entity agent.
     """
     print("Entity Agent: Initializing...")
 
-
     # Ensure ollama Python package, CLI, and model are installed and ready
     ensure_ollama_ready()
     import ollama
     print("Ollama connection successful.")
-    
+
     os_name = get_operating_system()
     print(f"Running on: {os_name}. Welcome to Entity.")
     print("You can ask me questions, run terminal commands (e.g., 'run: ls -l'), or list processes (e.g., 'run: list_processes').")
@@ -37,7 +38,7 @@ When the user asks you to perform a task, respond with the appropriate command."
 
             if user_input.lower().startswith("run:"):
                 command_full = user_input[4:].strip()
-                
+
                 if command_full == "list_processes":
                     print("Listing running processes...")
                     processes = list_processes()
@@ -48,7 +49,7 @@ When the user asks you to perform a task, respond with the appropriate command."
                     command = command_full
                     print(f"Executing command: '{command}'")
                     stdout, stderr, return_code = execute_command(command)
-                    
+
                     if return_code == 0:
                         print("Output:")
                         print(stdout)
@@ -68,6 +69,11 @@ When the user asks you to perform a task, respond with the appropriate command."
             break
         except Exception as e:
             print(f"An error occurred: {e}")
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Entity Agent CLI")
+    parser.add_argument("--install-ollama", action="store_true", help="Install Ollama CLI and exit.")
+    args = parser.parse_args()
+    if args.install_ollama:
+        setup_ollama_cli()
+        sys.exit(0)
     runtime()

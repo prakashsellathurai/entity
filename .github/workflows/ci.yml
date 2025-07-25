@@ -1,0 +1,38 @@
+name: cross platform-ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pip dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Install Ollama via Entity Agent
+        run: |
+          python -m entityAgent.runtime --install-ollama
+      - name: Verify Ollama installation
+        shell: bash
+        run: |
+          if command -v ollama; then
+            ollama --version
+          else
+            echo "Ollama not found!" && exit 1
+          fi
+      - name: Run tests
+        run: pytest
