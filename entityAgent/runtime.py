@@ -3,8 +3,11 @@
 import sys
 import time
 import argparse
+import os
 from entityAgent.ollama_utils import setup_ollama_cli, ensure_ollama_ready
 from entityAgent.platform_interaction import execute_command, get_operating_system, list_processes
+
+
 def runtime():
     """
     Main function to run the Entity agent.
@@ -28,6 +31,10 @@ You have the following capabilities:
 When the user asks you to perform a task, respond with the appropriate command."""
 
     messages = [{'role': 'system', 'content': system_prompt}]
+
+    # Get the LLM model from the environment variable, default to 'llama3'
+    llm_model = os.environ.get("ENTITY_LLM_MODEL", "llama3")
+    print(f"Using LLM model: {llm_model}", flush=True)
 
     while True:
         try:
@@ -59,7 +66,7 @@ When the user asks you to perform a task, respond with the appropriate command."
                     messages.append({'role': 'assistant', 'content': f"Executed command: '{command}'\nOutput:\n{stdout}\nError:\n{stderr}"})
             else:
                 messages.append({'role': 'user', 'content': user_input})
-                response = ollama.chat(model='llama3', messages=messages)
+                response = ollama.chat(model=llm_model, messages=messages)
                 assistant_response = response['message']['content']
                 print(assistant_response)
                 messages.append({'role': 'assistant', 'content': assistant_response})
@@ -69,11 +76,20 @@ When the user asks you to perform a task, respond with the appropriate command."
             break
         except Exception as e:
             print(f"An error occurred: {e}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Entity Agent CLI")
     parser.add_argument("--install-ollama", action="store_true", help="Install Ollama CLI and exit.")
+    parser.add_argument("--llm-model", type=str, help="Specify the LLM model to use.")
     args = parser.parse_args()
+
     if args.install_ollama:
         setup_ollama_cli()
         sys.exit(0)
+
+    # Override environment variable with command-line argument, if provided
+    if args.llm_model:
+        os.environ["ENTITY_LLM_MODEL"] = args.llm_model
+
     runtime()

@@ -54,7 +54,7 @@ class OllamaCLI:
     Helper class that guarantees the Ollama CLI and a specific model exist.
     """
 
-    model: str = "llama3"
+    model: str = os.environ.get("ENTITY_LLM_MODEL", "llama3")
     linux_url: str = os.environ.get("OLLAMA_LINUX_URL", "https://ollama.com/download/ollama-linux-amd64.tar.gz")
 
     # Computed attributes (populated at runtime)
