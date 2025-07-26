@@ -1,6 +1,5 @@
 
-
-Entity is a Python-based AI agent designed to interact with your operating system, execute commands, and control programs across Windows, macOS, and Linux.
+Entity: The  AI agent that bridges you and your OS—seamlessly execute commands and control apps on Windows, macOS, and Linux.
 
 [![Run Pytest](https://github.com/prakashsellathurai/entity/actions/workflows/pytest.yml/badge.svg)](https://github.com/prakashsellathurai/entity/actions/workflows/pytest.yml)
 [![cross platform-ci](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml)
