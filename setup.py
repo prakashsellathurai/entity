@@ -12,6 +12,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'psutil',
+        'PyYAML',
     ],
     python_requires='>=3.8',
     include_package_data=True,

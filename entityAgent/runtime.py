@@ -32,8 +32,10 @@ When the user asks you to perform a task, respond with the appropriate command."
 
     messages = [{'role': 'system', 'content': system_prompt}]
 
-    # Get the LLM model from the environment variable, default to 'llama3'
-    llm_model = os.environ.get("ENTITY_LLM_MODEL", "llama3")
+    # Get the LLM model from configuration
+    from entityAgent.config import load_config
+    config = load_config()
+    llm_model = config.model
     print(f"Using LLM model: {llm_model}", flush=True)
 
     while True:
@@ -88,8 +90,19 @@ if __name__ == "__main__":
         setup_ollama_cli()
         sys.exit(0)
 
-    # Override environment variable with command-line argument, if provided
+    # Load configuration
+    from entityAgent.config import load_config
+    config = load_config()
+
+    # Override with command-line argument
     if args.llm_model:
-        os.environ["ENTITY_LLM_MODEL"] = args.llm_model
+        config.model = args.llm_model
+
+    # Set environment variable for Ollama host if configured
+    if config.server_url:
+        os.environ["OLLAMA_HOST"] = config.server_url
+
+    # Update environment variable for compatibility
+    os.environ["ENTITY_LLM_MODEL"] = config.model
 
     runtime()

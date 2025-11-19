@@ -56,13 +56,32 @@ python -m entityAgent.runtime
 ```
 ## TODO / Roadmap
 
-- [ ] Allow configuration of LLM model (e.g., choose `llama3`, `mistral`, etc.)
-- [ ] Add support for configuring LLM server URL/port
+- [x] Allow configuration of LLM model (e.g., choose `llama3`, `mistral`, etc.)
+- [x] Add support for configuring LLM server URL/port
 - [ ] Add UI options (CLI, Web, GUI)
-- [ ] Add configuration file for user preferences
+- [x] Add configuration file for user preferences
 - [ ] Extend platform interaction capabilities
 
 
+
+
+## Configuration
+
+You can configure the Entity Agent using a `config.yaml` file or environment variables.
+
+### Configuration File
+Create a `config.yaml` file in your current directory or in `~/.entity/config.yaml`.
+
+```yaml
+model: llama3          # The Ollama model to use (default: llama3)
+server_url: http://localhost:11434  # The Ollama server URL (optional)
+```
+
+### Environment Variables
+Environment variables take precedence over the configuration file.
+
+- `ENTITY_LLM_MODEL`: The Ollama model to use.
+- `ENTITY_OLLAMA_URL`: The Ollama server URL.
 
 ## Usage
 
