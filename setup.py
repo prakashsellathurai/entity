@@ -13,12 +13,14 @@ setup(
     install_requires=[
         'psutil',
         'PyYAML',
+        'fastapi',
+        'uvicorn',
     ],
     python_requires='>=3.8',
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'entity-agent=entityAgent.agent:runtime',
+            'entity-agent=entityAgent.runtime:main',
             'uninstall_entityagent = entityAgent.ollama_utils:uninstall_ollama_cli',
         ],
     },

@@ -80,10 +80,11 @@ When the user asks you to perform a task, respond with the appropriate command."
             print(f"An error occurred: {e}")
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Entity Agent CLI")
     parser.add_argument("--install-ollama", action="store_true", help="Install Ollama CLI and exit.")
     parser.add_argument("--llm-model", type=str, help="Specify the LLM model to use.")
+    parser.add_argument("--web", action="store_true", help="Start the Web Interface.")
     args = parser.parse_args()
 
     if args.install_ollama:
@@ -105,4 +106,13 @@ if __name__ == "__main__":
     # Update environment variable for compatibility
     os.environ["ENTITY_LLM_MODEL"] = config.model
 
-    runtime()
+    if args.web:
+        import uvicorn
+        print("Starting Web Interface at http://localhost:8000")
+        uvicorn.run("entityAgent.web.server:app", host="0.0.0.0", port=8000, reload=False)
+    else:
+        runtime()
+
+
+if __name__ == "__main__":
+    main()
