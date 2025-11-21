@@ -130,6 +130,18 @@ Or using python:
 python -m entityAgent.runtime --web
 ```
 
+### 3. Native GUI
+
+You can also run the agent as a standalone desktop application:
+
+```bash
+entity-agent --gui
+```
+or
+```bash
+python -m entityAgent.runtime --gui
+```
+
 Open your browser and navigate to: `http://localhost:8000`
 
 **Features:**

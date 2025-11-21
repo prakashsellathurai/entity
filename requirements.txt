@@ -4,3 +4,4 @@ PyYAML
 fastapi
 uvicorn
 httpx
+pywebview

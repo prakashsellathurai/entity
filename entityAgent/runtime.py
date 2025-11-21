@@ -85,6 +85,7 @@ def main():
     parser.add_argument("--install-ollama", action="store_true", help="Install Ollama CLI and exit.")
     parser.add_argument("--llm-model", type=str, help="Specify the LLM model to use.")
     parser.add_argument("--web", action="store_true", help="Start the Web Interface.")
+    parser.add_argument("--gui", action="store_true", help="Start the Native GUI.")
     args = parser.parse_args()
 
     if args.install_ollama:
@@ -106,10 +107,48 @@ def main():
     # Update environment variable for compatibility
     os.environ["ENTITY_LLM_MODEL"] = config.model
 
-    if args.web:
+    if args.web or args.gui:
         import uvicorn
-        print("Starting Web Interface at http://localhost:8000")
-        uvicorn.run("entityAgent.web.server:app", host="0.0.0.0", port=8000, reload=False)
+        import threading
+        import time
+        
+        host = "127.0.0.1"
+        port = 8000
+        url = f"http://{host}:{port}"
+        
+        def start_server():
+            print(f"Starting Web Interface at {url}")
+            uvicorn.run("entityAgent.web.server:app", host=host, port=port, log_level="error", reload=False)
+
+        if args.gui:
+            try:
+                import webview
+            except ImportError:
+                print("Error: pywebview is not installed. Please install it with 'pip install pywebview'.")
+                sys.exit(1)
+
+            # Start server in a separate thread
+            t = threading.Thread(target=start_server, daemon=True)
+            t.start()
+            
+            # Wait a bit for the server to start
+            time.sleep(1)
+            
+            print("Starting Native GUI...")
+            webview.create_window('Entity Agent', url)
+            try:
+                webview.start()
+            except Exception as e:
+                print(f"Warning: Could not start native GUI: {e}")
+                print("This is common in WSL or headless environments.")
+                print(f"The Web Interface is still running at {url}")
+                print("Press Ctrl+C to exit.")
+                # Keep the main thread alive so the web server (daemon thread) continues running
+                while True:
+                    time.sleep(1)
+        else:
+            # Standard web mode
+            start_server()
     else:
         runtime()
 
