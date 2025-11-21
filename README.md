@@ -5,7 +5,7 @@ Entity: The  AI agent that bridges you and your OS—seamlessly execute commands
 [![cross platform-ci](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/prakashsellathurai/entity/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/entityagent)](https://pypi.org/project/entityagent/)
 [![Python version](https://img.shields.io/pypi/pyversions/entityagent)](https://pypi.org/project/entityagent/)
-![Coverage](coverage.svg)
+
 
 
 ## Architecture
