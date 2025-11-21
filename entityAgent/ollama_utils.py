@@ -170,6 +170,23 @@ class OllamaCLI:
 
     # 2.3 Model availability
     def _ensure_model(self) -> None:
+        models = _run([self.executable, "list"], check=False).stdout
+        if self.model not in models:
+            print(f"[INFO] Downloading Ollama model '{self.model}'…")
+            _run([self.executable, "pull", self.model])
+
+    # 2.4 Server availability
+    def _ensure_server_running(self) -> None:
+        try:
+            import ollama
+
+            ollama.list()
+        except Exception:
+            print("[INFO] Starting local Ollama server…")
+            subprocess.Popen([self.executable, "run", self.model])
+            time.sleep(5)  # allow startup
+            import ollama
+
             ollama.list()
 
     # ── Platform-specific helpers ────────────────────────────────────────────
