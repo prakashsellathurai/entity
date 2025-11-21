@@ -58,7 +58,7 @@ python -m entityAgent.runtime
 
 - [x] Allow configuration of LLM model (e.g., choose `llama3`, `mistral`, etc.)
 - [x] Add support for configuring LLM server URL/port
-- [ ] Add UI options (CLI, Web, GUI)
+- [x] Add UI options (CLI, Web, GUI)
 - [x] Add configuration file for user preferences
 - [ ] Extend platform interaction capabilities
 
