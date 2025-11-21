@@ -3,3 +3,4 @@ psutil
 PyYAML
 fastapi
 uvicorn
+httpx

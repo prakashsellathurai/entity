@@ -10,12 +10,7 @@ setup(
     author_email='prakashsellathurai@gmail.com',
     url='https://github.com/prakashsellathurai/entity',
     packages=find_packages(),
-    install_requires=[
-        'psutil',
-        'PyYAML',
-        'fastapi',
-        'uvicorn',
-    ],
+    install_requires=open('requirements.txt').read().splitlines(),
     python_requires='>=3.8',
     include_package_data=True,
     entry_points={
