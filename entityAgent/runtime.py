@@ -27,8 +27,14 @@ def runtime():
 You have the following capabilities:
 1. Execute terminal commands: `run: <command>`
 2. List running processes: `run: list_processes`
+3. If you run a command, I will show you the output, and you can decide what to do next.
 
-When the user asks you to perform a task, respond with the appropriate command."""
+To execute a command, your response must start with "run:". Do not put any explanation before the command.
+Example:
+run: ls -la
+
+When the user asks you to perform a task, use these capabilities to achieve the goal.
+If the user asks a question that requires information from the system, run a command to get it."""
 
     messages = [{'role': 'system', 'content': system_prompt}]
 
@@ -68,10 +74,44 @@ When the user asks you to perform a task, respond with the appropriate command."
                     messages.append({'role': 'assistant', 'content': f"Executed command: '{command}'\nOutput:\n{stdout}\nError:\n{stderr}"})
             else:
                 messages.append({'role': 'user', 'content': user_input})
-                response = ollama.chat(model=llm_model, messages=messages)
-                assistant_response = response['message']['content']
-                print(assistant_response)
-                messages.append({'role': 'assistant', 'content': assistant_response})
+
+                while True:
+                    response = ollama.chat(model=llm_model, messages=messages)
+                    assistant_response = response['message']['content']
+
+                    # Check if the response is a command
+                    if assistant_response.strip().lower().startswith("run:"):
+                        print(assistant_response) # Show the thought/command to the user
+                        messages.append({'role': 'assistant', 'content': assistant_response})
+                        
+                        command_to_run = assistant_response.strip()[4:].strip()
+                        
+                        if command_to_run == "list_processes":
+                            print("Entity is listing running processes...")
+                            processes = list_processes()
+                            process_list_str = "\n".join([f"PID: {p['pid']}, Name: {p['name']}, User: {p['username']}" for p in processes])
+                            print(process_list_str)
+                            messages.append({'role': 'system', 'content': f"Command execution result:\n{process_list_str}"})
+                        else:
+                            print(f"Entity is executing: {command_to_run}")
+                            stdout, stderr, return_code = execute_command(command_to_run)
+                            
+                            output_msg = ""
+                            if return_code == 0:
+                                print(f"Output:\n{stdout}")
+                                output_msg = f"Command execution result:\n{stdout}"
+                            else:
+                                print(f"Error:\n{stderr}")
+                                output_msg = f"Command failed with error:\n{stderr}"
+                                
+                            messages.append({'role': 'system', 'content': output_msg})
+                        
+                        # Loop continues to let the agent respond to the output
+                    else:
+                        # Final response to user
+                        print(assistant_response)
+                        messages.append({'role': 'assistant', 'content': assistant_response})
+                        break
 
         except KeyboardInterrupt:
             print("\nExiting Entity Agent.")
