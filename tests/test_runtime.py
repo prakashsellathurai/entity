@@ -19,7 +19,7 @@ def test_main_install_ollama():
 
 def test_main_web_interface():
     with patch("argparse.ArgumentParser.parse_args") as mock_args:
-        mock_args.return_value = MagicMock(install_ollama=False, llm_model=None, web=True)
+        mock_args.return_value = MagicMock(install_ollama=False, llm_model=None, web=True, gui=False)
         with patch("entityAgent.config.load_config") as mock_config:
             mock_config.return_value = MagicMock(server_url=None, model="default-model")
             with patch("uvicorn.run") as mock_uvicorn:
@@ -28,7 +28,7 @@ def test_main_web_interface():
 
 def test_main_runtime_execution():
     with patch("argparse.ArgumentParser.parse_args") as mock_args:
-        mock_args.return_value = MagicMock(install_ollama=False, llm_model="custom-model", web=False)
+        mock_args.return_value = MagicMock(install_ollama=False, llm_model="custom-model", web=False, gui=False)
         with patch("entityAgent.config.load_config") as mock_config:
             mock_config.return_value = MagicMock(server_url="http://custom-host", model="default-model")
             with patch("entityAgent.runtime.runtime") as mock_runtime:

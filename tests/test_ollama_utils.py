@@ -1,14 +1,18 @@
 import sys
-import subprocess
 import pytest
 from unittest.mock import MagicMock, patch, call
 from entityAgent.ollama_utils import (
     _run,
     ensure_python_package,
-    OllamaCLI,
     OllamaSetupError,
     setup_ollama_cli,
     ensure_ollama_ready,
+    find_existing_cli,
+    locate_or_install_cli,
+    verify_cli,
+    ensure_model,
+    ensure_server_running,
+    ensure_cli_ready,
 )
 
 # -----------------------------------------------------------------------------
@@ -62,87 +66,117 @@ def test_ensure_python_package_missing():
             )
 
 # -----------------------------------------------------------------------------
-# Test OllamaCLI
+# Test find_existing_cli
 # -----------------------------------------------------------------------------
 
-@pytest.fixture
-def ollama_cli():
-    return OllamaCLI(model="test-model")
-
-def test_locate_or_install_cli_found_in_path(ollama_cli):
+def test_find_existing_cli_found_in_path():
     with patch("shutil.which", return_value="/usr/bin/ollama"):
-        ollama_cli._locate_or_install_cli()
-        assert ollama_cli.executable == "/usr/bin/ollama"
+        result = find_existing_cli()
+        assert result == "/usr/bin/ollama"
 
-def test_locate_or_install_cli_auto_install_linux(ollama_cli):
-    # Force system to linux
-    with patch.object(ollama_cli, "_system", "linux"):
-        with patch("shutil.which", side_effect=[None, "/usr/local/bin/ollama"]): # First check fails, second (after install) succeeds
-            with patch.object(ollama_cli, "_install_linux_tar", return_value="/usr/local/bin/ollama") as mock_install:
-                ollama_cli._locate_or_install_cli()
-                assert ollama_cli.executable == "/usr/local/bin/ollama"
-                mock_install.assert_called_once()
+def test_find_existing_cli_not_found():
+    with patch("shutil.which", return_value=None):
+        result = find_existing_cli()
+        assert result is None
 
-def test_verify_cli(ollama_cli):
-    ollama_cli.executable = "/bin/ollama"
+# -----------------------------------------------------------------------------
+# Test locate_or_install_cli
+# -----------------------------------------------------------------------------
+
+@patch("entityAgent.ollama_utils.find_existing_cli", return_value="/usr/bin/ollama")
+def test_locate_or_install_cli_found(mock_find):
+    result = locate_or_install_cli()
+    assert result == "/usr/bin/ollama"
+
+@patch("entityAgent.ollama_utils.find_existing_cli", return_value=None)
+@patch("entityAgent.ollama_utils.auto_install_cli", return_value="/usr/local/bin/ollama")
+def test_locate_or_install_cli_auto_install(mock_find, mock_auto):
+    result = locate_or_install_cli()
+    assert result == "/usr/local/bin/ollama"
+
+@patch("entityAgent.ollama_utils.find_existing_cli", return_value=None)
+@patch("entityAgent.ollama_utils.auto_install_cli", return_value=None)
+def test_locate_or_install_cli_fails(mock_find, mock_auto):
+    with pytest.raises(OllamaSetupError, match="Ollama CLI not found"):
+        locate_or_install_cli()
+
+# -----------------------------------------------------------------------------
+# Test verify_cli
+# -----------------------------------------------------------------------------
+
+def test_verify_cli():
     with patch("entityAgent.ollama_utils._run") as mock_run:
-        ollama_cli._verify_cli()
+        verify_cli("/bin/ollama")
         mock_run.assert_called_once_with(["/bin/ollama", "--version"])
 
-def test_ensure_model_already_present(ollama_cli):
-    ollama_cli.executable = "/bin/ollama"
+# -----------------------------------------------------------------------------
+# Test ensure_model
+# -----------------------------------------------------------------------------
+
+def test_ensure_model_already_present():
     with patch("entityAgent.ollama_utils._run") as mock_run:
         mock_run.return_value.stdout = "model1\ntest-model\nmodel2"
-        ollama_cli._ensure_model()
-        # Should list but not pull
+        ensure_model("/bin/ollama", "test-model")
         mock_run.assert_called_once_with(["/bin/ollama", "list"], check=False)
 
-def test_ensure_model_missing(ollama_cli):
-    ollama_cli.executable = "/bin/ollama"
+def test_ensure_model_missing():
     with patch("entityAgent.ollama_utils._run") as mock_run:
         mock_run.return_value.stdout = "model1\nmodel2"
-        ollama_cli._ensure_model()
-        # Should list AND pull
+        ensure_model("/bin/ollama", "test-model")
         assert mock_run.call_count == 2
         mock_run.assert_has_calls([
             call(["/bin/ollama", "list"], check=False),
             call(["/bin/ollama", "pull", "test-model"])
         ])
 
-def test_ensure_server_running_already_up(ollama_cli):
+# -----------------------------------------------------------------------------
+# Test ensure_server_running
+# -----------------------------------------------------------------------------
+
+def test_ensure_server_running_already_up():
     with patch.dict(sys.modules, {"ollama": MagicMock()}):
         import ollama
-        ollama_cli._ensure_server_running()
+        ensure_server_running("/bin/ollama", "test-model")
         ollama.list.assert_called_once()
 
-def test_ensure_server_running_start_server(ollama_cli):
-    ollama_cli.executable = "/bin/ollama"
+def test_ensure_server_running_start_server():
     mock_ollama = MagicMock()
-    # First call raises exception, second succeeds
     mock_ollama.list.side_effect = [Exception("down"), ["model"]]
-    
+
     with patch.dict(sys.modules, {"ollama": mock_ollama}):
         with patch("subprocess.Popen") as mock_popen:
-            with patch("time.sleep"): # skip sleep
-                ollama_cli._ensure_server_running()
-                
+            with patch("time.sleep"):
+                ensure_server_running("/bin/ollama", "test-model")
+
                 mock_popen.assert_called_once_with(["/bin/ollama", "run", "test-model"])
                 assert mock_ollama.list.call_count == 2
+
+# -----------------------------------------------------------------------------
+# Test ensure_cli_ready (orchestrator)
+# -----------------------------------------------------------------------------
+
+@patch("entityAgent.ollama_utils.ensure_server_running")
+@patch("entityAgent.ollama_utils.ensure_model")
+@patch("entityAgent.ollama_utils.verify_cli")
+@patch("entityAgent.ollama_utils.locate_or_install_cli", return_value="/bin/ollama")
+def test_ensure_cli_ready(mock_locate, mock_verify, mock_model, mock_server):
+    ensure_cli_ready("test-model")
+    mock_locate.assert_called_once()
+    mock_verify.assert_called_once_with("/bin/ollama")
+    mock_model.assert_called_once_with("/bin/ollama", "test-model")
+    mock_server.assert_called_once_with("/bin/ollama", "test-model")
 
 # -----------------------------------------------------------------------------
 # Test Wrappers
 # -----------------------------------------------------------------------------
 
-def test_setup_ollama_cli():
-    with patch("entityAgent.ollama_utils.OllamaCLI") as MockCLI:
-        setup_ollama_cli("my-model")
-        MockCLI.assert_called_with("my-model")
-        MockCLI.return_value._locate_or_install_cli.assert_called_once()
+@patch("entityAgent.ollama_utils.locate_or_install_cli", return_value="/bin/ollama")
+def test_setup_ollama_cli(mock_locate):
+    setup_ollama_cli("my-model")
 
-def test_ensure_ollama_ready():
-    with patch("entityAgent.ollama_utils.ensure_python_package") as mock_pkg:
-        with patch("entityAgent.ollama_utils.OllamaCLI") as MockCLI:
-            ensure_ollama_ready("my-model")
-            mock_pkg.assert_called_once_with("ollama")
-            MockCLI.assert_called_with("my-model")
-            MockCLI.return_value.ensure_ready.assert_called_once()
+@patch("entityAgent.ollama_utils.ensure_cli_ready")
+@patch("entityAgent.ollama_utils.ensure_python_package")
+def test_ensure_ollama_ready(mock_pkg, mock_cli_ready):
+    ensure_ollama_ready("my-model")
+    mock_pkg.assert_called_once_with("ollama")
+    mock_cli_ready.assert_called_once_with("my-model")
